@@ -45,8 +45,10 @@ class TransformerLitModel(BaseImageToTextLitModel):
         x, y = batch
         logits = self.teacher_forward(x, y[:, :-1])
         loss = self.loss_fn(logits, y[:, 1:])
+        self.train_mean.update(loss)
 
         self.log("train/loss", loss)
+        self.log("train/mean", self.train_mean.compute(), sync_dist=True, on_step=False, on_epoch=True)
 
         outputs = {"loss": loss}
         if self.is_logged_batch():

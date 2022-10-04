@@ -3,7 +3,7 @@ import argparse
 
 import pytorch_lightning as pl
 import torch
-from torchmetrics import Accuracy
+from torchmetrics import Accuracy, MeanMetric
 
 from .metrics import CharacterErrorRate
 
@@ -43,6 +43,7 @@ class BaseLitModel(pl.LightningModule):
         self.train_acc = Accuracy()
         self.val_acc = Accuracy()
         self.test_acc = Accuracy()
+        
 
     @staticmethod
     def add_to_argparse(parser):
@@ -75,6 +76,7 @@ class BaseLitModel(pl.LightningModule):
 
         self.log("train/loss", loss)
         self.log("train/acc", self.train_acc, on_step=False, on_epoch=True)
+        
 
         outputs = {"loss": loss}
         self.add_on_first_batch({"logits": logits.detach()}, outputs, batch_idx)
@@ -138,3 +140,4 @@ class BaseImageToTextLitModel(BaseLitModel):  # pylint: disable=too-many-ancesto
         self.ignore_tokens = [self.start_index, self.end_index, self.padding_index]
         self.val_cer = CharacterErrorRate(self.ignore_tokens)
         self.test_cer = CharacterErrorRate(self.ignore_tokens)
+        self.train_mean = MeanMetric()
